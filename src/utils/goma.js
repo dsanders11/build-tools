@@ -140,19 +140,34 @@ function recordGomaLoginTime() {
 }
 
 function ensureGomaStart(config) {
+  const isWindows = process.platform === 'win32';
+
   // GomaCC is super fast and we can assume that a 0 exit code means we are good-to-go
-  const gomacc = path.resolve(gomaDir, process.platform === 'win32' ? 'gomacc.exe' : 'gomacc');
+  const gomacc = path.resolve(gomaDir, isWindows ? 'gomacc.exe' : 'gomacc');
   const { status } = childProcess.spawnSync(gomacc, ['port', '2']);
   if (status === 0) return;
 
-  console.log(color.childExec('goma_ctl.py', ['ensure_start'], { cwd: gomaDir }));
-  childProcess.execFileSync('python', ['goma_ctl.py', 'ensure_start'], {
-    cwd: gomaDir,
-    env: {
-      ...process.env,
-      ...gomaEnv(config),
-    },
-  });
+  if (isWindows) {
+    const cwd = path.resolve(config.root, 'src', 'electron', 'script');
+
+    console.log(color.childExec('start-goma.ps1', ['-gomaDir', gomaDir], { cwd }));
+    childProcess.execFileSync('powershell', ['-file', 'start-goma.ps1', '-gomaDir', gomaDir], {
+      cwd,
+      env: {
+        ...process.env,
+        ...gomaEnv(config),
+      },
+    });
+  } else {
+    console.log(color.childExec('goma_ctl.py', ['ensure_start'], { cwd: gomaDir }));
+    childProcess.execFileSync('python', ['goma_ctl.py', 'ensure_start'], {
+      cwd: gomaDir,
+      env: {
+        ...process.env,
+        ...gomaEnv(config),
+      },
+    });
+  }
 }
 
 function gomaAuthFailureEnv(config) {
