@@ -61,13 +61,10 @@ function guessPRTarget(config) {
   if (version.includes('nightly')) return 'master';
 
   const versionPattern = /^(\d+)\.(\d+)\.\d+.*$/;
-  const match = versionPattern.exec(version);
+  const [match, major] = versionPattern.exec(version);
 
   if (match) {
-    const [major, minor] = [match[1], match[2]];
-
-    //TODO(codebytere): remove this conditional when 7-1-x is EOL
-    return parseInt(major, 10) >= 8 ? `${major}-x-y` : `${major}-${minor}-x`;
+    return `${major}-x-y`;
   }
 
   console.warn(
