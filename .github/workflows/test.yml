@@ -44,4 +44,4 @@ jobs:
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       run: yarn install
     - name: Test
-      run: yarn test
+      run: yarn test -i
