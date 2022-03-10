@@ -1,7 +1,7 @@
 const path = require('path');
 const createSandbox = require('./sandbox');
 
-describe('e-remove', () => {
+describe.skip('e-remove', () => {
   let sandbox;
   let root;
   let name;
