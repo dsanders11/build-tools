@@ -13,7 +13,7 @@ describe('e-init', () => {
   });
 
   describe('--root', () => {
-    it('creates a new directory with a .gclient file', () => {
+    it.only('creates a new directory with a .gclient file', () => {
       const root = path.resolve(sandbox.tmpdir, 'main');
       const gclient_file = path.resolve(root, '.gclient');
 
