@@ -19,7 +19,7 @@ function runSync(args, options) {
   // https://github.com/facebook/jest/issues/3190#issuecomment-354758036
   const spawnCmd = os.platform() === 'win32' ? 'nyc.cmd' : 'nyc';
   const spawnArgs = ['--reporter', 'none', 'node'];
-  const debug = false;
+  const debug = true;
 
   args = [...spawnArgs, ...args];
 
