@@ -4,11 +4,13 @@ const childProcess = require('child_process');
 const path = require('path');
 const program = require('commander');
 
+const { ElectronVersions, Installer } = require('@electron/fiddle-core');
+
 const evmConfig = require('./evm-config');
 const { ensureNodeHeaders } = require('./utils/headers');
 const { color, fatal } = require('./utils/logging');
 
-function runSpecRunner(config, script, runnerArgs) {
+async function runSpecRunner(config, script, runnerArgs, electron_version = undefined) {
   const exec = process.execPath;
   const args = [script, ...runnerArgs];
   const opts = {
@@ -29,6 +31,14 @@ function runSpecRunner(config, script, runnerArgs) {
       ...config.env,
     },
   };
+  if (electron_version) {
+    const versions = await ElectronVersions.create();
+    const installer = new Installer();
+    if (!versions.isVersion(electron_version)) {
+      fatal(`${electron_version} is not a supported Electron version`);
+    }
+    opts.env.ELECTRON_TESTS_EXECUTABLE = await installer.install(electron_version);
+  }
   console.log(color.childExec(exec, args, opts));
   childProcess.execFileSync(exec, args, opts);
 }
@@ -42,7 +52,8 @@ program
     '--runners=<main|remote|native>',
     "A subset of tests to run - either 'main', 'remote', or 'native', not used with either the node or nan specs",
   )
-  .action((specRunnerArgs, options) => {
+  .option('--version <version>', 'Run tests with an Electron release version')
+  .action(async (specRunnerArgs, options) => {
     try {
       const config = evmConfig.current();
       if (options.node && options.nan) {
@@ -57,8 +68,10 @@ program
       if (options.nan) {
         script = './script/nan-spec-runner.js';
       }
-      ensureNodeHeaders(config);
-      runSpecRunner(config, script, specRunnerArgs);
+      if (!options.version) {
+        ensureNodeHeaders(config);
+      }
+      await runSpecRunner(config, script, specRunnerArgs, options.version);
     } catch (e) {
       fatal(e);
     }
